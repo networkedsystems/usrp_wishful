@@ -1,0 +1,148 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+
+"""
+wishful_controller_simple.py: First implementation of WiSHFUL controller
+
+Usage:
+   wishful_controller_simple.py [options] [-q | -v]
+
+Options:
+   --logfile name      Name of the logfile
+   --config configFile Config file path
+
+Example:
+   ./wishful_simple_local_controller -v --config ./config.yaml 
+
+Other options:
+   -h, --help          show this help message and exit
+   -q, --quiet         print less text
+   -v, --verbose       print more text
+   --version           show version and exit
+"""
+
+import sys
+import datetime
+import logging
+import wishful_controller
+import gevent
+import yaml
+import wishful_upis as upis
+
+__author__ = "Piotr Gawlowicz, Mikolaj Chwalisz"
+__copyright__ = "Copyright (c) 2015, Technische Universität Berlin"
+__version__ = "0.1.0"
+__email__ = "{gawlowicz, chwalisz}@tkn.tu-berlin.de"
+
+
+log = logging.getLogger('wishful_agent.main')
+controller = wishful_controller.Controller()
+nodes = []
+
+
+@controller.new_node_callback()
+def new_node(node):
+    nodes.append(node)
+    print("New node appeared:")
+    print(node)
+
+
+@controller.node_exit_callback()
+def node_exit(node, reason):
+    if node in nodes:
+        nodes.remove(node);
+    print("NodeExit : NodeID : {} Reason : {}".format(node.id, reason))
+
+
+@controller.set_default_callback()
+def default_callback(group, node, cmd, data):
+    print("{} DEFAULT CALLBACK : Group: {}, NodeName: {}, Cmd: {}, Returns: {}".format(datetime.datetime.now(), group, node.name, cmd, data))
+
+def print_response(group, node, data):
+    print("{} Print response : Group:{}, NodeIP:{}, Result:{}".format(datetime.datetime.now(), group, node.ip, data)) 
+
+
+def main(args):
+    log.debug(args)
+
+    config_file_path = args['--config']
+    config = None
+    with open(config_file_path, 'r') as f:
+        config = yaml.load(f)
+
+    controller.load_config(config)
+    controller.start()
+    gevent.sleep(10)
+    print("\n")
+    print("Connected nodes", [str(node.name) for node in nodes])
+    #set usrp parameters
+    controller.blocking(False).node(nodes[0]).radio.iface("usrp0").set_parameters({'DEV_ADDRESS':10,'TX_POWER':9,'RX_GAIN':1,'SET_CD':'reset'})
+    gevent.sleep(2)
+    controller.blocking(False).node(nodes[0]).radio.iface("usrp0").set_parameters({'DEST_ADDRESS':11,'CD_AVG_LEN':15,'CD_THRESHOLD':10,'SI_ENABLE':True,'RETUNE_DUPLEXER':True})
+    gevent.sleep(4)
+    #now the duplexer is tuned
+    controller.blocking(False).node(nodes[0]).radio.iface("usrp0").set_parameters({'RETUNE_DUPLEXER':False})
+    print('Mac Setting for CD training should be 1')
+    controller.blocking(False).node(nodes[0]).radio.iface("usrp0").set_parameters({'SET_MAC':1})
+    gevent.sleep(4)
+    print('Train CD')
+    print('... Training')
+    controller.blocking(False).node(nodes[0]).radio.iface("usrp0").set_parameters({'SET_CD':'train'})
+    gevent.sleep(4)
+    print('... Fix Alpha')
+    controller.blocking(False).node(nodes[0]).radio.iface("usrp0").set_parameters({'SET_CD':'fix_alpha'})
+    gevent.sleep(2)
+    print('... Start CD')
+    controller.blocking(False).node(nodes[0]).radio.iface("usrp0").set_parameters({'SET_CD':'start'})
+    gevent.sleep(3)
+    controller.blocking(False).node(nodes[0]).radio.iface("usrp0").set_parameters({'SET_MAC':1})
+ 
+
+    #control loop
+    while True:
+        gevent.sleep(5)
+        
+        if nodes:
+            #execute non-blocking function immediately
+            #request parameters
+            gevent.sleep(2)
+            controller.blocking(False).node(nodes[0]).radio.iface("usrp0").get_parameters(('RX_GAIN','DEV_ADDRESS','TX_POWER','SET_CD'))
+            #request measurements
+            gevent.sleep(2)
+            controller.blocking(False).node(nodes[0]).radio.iface("usrp0").get_measurements(('CD_RESULT','IQ_DATA'))
+
+
+if __name__ == "__main__":
+    try:
+        from docopt import docopt
+    except:
+        print("""
+        Please install docopt using:
+            pip install docopt==0.6.1
+        For more refer to:
+        https://github.com/docopt/docopt
+        """)
+        raise
+
+    args = docopt(__doc__, version=__version__)
+
+    log_level = logging.INFO  # default
+    if args['--verbose']:
+        log_level = logging.DEBUG
+    elif args['--quiet']:
+        log_level = logging.ERROR
+
+    logfile = None
+    if args['--logfile']:
+        logfile = args['--logfile']
+
+    logging.basicConfig(filename=logfile, level=log_level,
+        format='%(asctime)s - %(name)s.%(funcName)s() - %(levelname)s - %(message)s')
+
+    try:
+        main(args)
+    except KeyboardInterrupt:
+        log.debug("Controller exits")
+    finally:
+        log.debug("Exit")
+        controller.stop()
