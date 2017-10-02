@@ -100,6 +100,7 @@ class IBFDAgent(wishful_framework.AgentModule):
         self.mac_set = 0
         self.cd_threshold = 3
         self.si_en_dis = False
+        #self.supported_interfaces = kwargs['SupportedInterfaces']
         
         # Generating payload data
         for i in range(N_Payload):
@@ -135,7 +136,7 @@ class IBFDAgent(wishful_framework.AgentModule):
         s.send(MakePacket(Key_StartStopUSRP, 1))
         s.close()
         print('wait a moment...')
-        sleep(4)
+        #sleep(4)
         print('USRP started')
         return 0
         
@@ -200,7 +201,8 @@ class IBFDAgent(wishful_framework.AgentModule):
         return result
             
     @wishful_framework.bind_function(upis.radio.set_parameters)
-    def set_parameters(self,params:Dict,iface):
+    def set_parameters(self,params:Dict):
+        print('set parameters')
         result = {}
         if 'RX_GAIN' in params:
             self.set_rx_gain(params['RX_GAIN'])
