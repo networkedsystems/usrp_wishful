@@ -27,10 +27,10 @@ import sys, os
 import yaml
 import wishful_agent
 
-__author__ = "Piotr Gawlowicz, Mikolaj Chwalisz"
-__copyright__ = "Copyright (c) 2015, Technische Universität Berlin"
+__author__ = "Franco Minucci, Seyed Ali Hassani"
+__copyright__ = "Copyright (c) 2017, KU Leuven"
 __version__ = "0.1.0"
-__email__ = "{gawlowicz, chwalisz}@tkn.tu-berlin.de"
+__email__ = "franco.minucci@esat.kuleuven.be"
 
 log = logging.getLogger('wishful_agent.main')
 agent = wishful_agent.Agent()
