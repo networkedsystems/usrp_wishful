@@ -12,10 +12,10 @@ import wishful_upis as upis
 import wishful_framework as wishful_module
 from wishful_framework.classes import exceptions
 
-__author__ = ""
-__copyright__ = ""
+__author__ = "Franco Minucci, Seyed Ali Hassani, Alessandro Chiumento"
+__copyright__ = "Copyright (c) 2017, KU Leuven "
 __version__ = "0.1.0"
-__email__ = ""
+__email__ = "franco.minucci@esat.kuleuven.be"
 
 #Constants
 _USRP_IP_ADDRESS='10.33.136.138'
