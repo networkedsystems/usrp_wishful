@@ -2,17 +2,17 @@
 # -*- coding: utf-8 -*-
 
 """
-wishful_controller_simple.py: First implementation of WiSHFUL controller
+usrp_controller.py: Wishful controller for the USRP setup in KU leuven
 
 Usage:
-   wishful_controller_simple.py [options] [-q | -v]
+   ./usrp_controller [options] [-q | -v]
 
 Options:
    --logfile name      Name of the logfile
    --config configFile Config file path
 
 Example:
-   ./wishful_simple_local_controller -v --config ./config.yaml 
+   ./usrp_controller -v --config ./config.yaml 
 
 Other options:
    -h, --help          show this help message and exit
