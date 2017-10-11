@@ -18,7 +18,7 @@ __version__ = "0.1.0"
 __email__ = "franco.minucci@esat.kuleuven.be"
 
 #Constants
-_USRP_IP_ADDRESS='10.33.136.138'
+_USRP_IP_ADDRESS='10.33.101.138'
 _USRP_IP_PORT = 5022
 # Packet format : [Header, Length byte1, Length byte0, Key, Data0, Data1,...]
 Header = [250, 1, 250]
