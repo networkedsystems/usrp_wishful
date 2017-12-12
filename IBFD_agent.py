@@ -13,7 +13,7 @@ __license__ = "GPL"
 __version__ = "0.2"
 __maintainer__ = "Seyed Ali Hassani"
 __email__ = "seyedali.hassani@kuleuven.be"
-__status__ = "alpha"
+__status__ = "beta"
 
 from typing import Dict,List
 import logging
